@@ -66,7 +66,7 @@ namespace WebApiDotnetCoreSample.Services
             {
                 return;
             }
-            Pizzas.Insert(index, updatedPizza);
+            Pizzas[index] = updatedPizza;
         }
 
         /// <summary>

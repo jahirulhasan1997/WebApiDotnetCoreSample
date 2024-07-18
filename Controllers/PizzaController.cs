@@ -7,8 +7,6 @@ using WebApiDotnetCoreSample.Services;
 
 namespace WebApiDotnetCoreSample.Controllers
 {
-    [ApiController]
-    [Route("[controller]")]
     public class PizzaController : ControllerBase
     {
        public PizzaController() { }
@@ -19,13 +17,14 @@ namespace WebApiDotnetCoreSample.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet]
+        
         public ActionResult<Pizza> GetPizzaById(int id)
         {
             var pizza = PizzaService.GetPizzaById(id);
 
             if(pizza == null)
             {
-                return NotFound();
+                return NotFound($"Pizza not found with id : {id}");
             }
 
             return pizza;
@@ -37,7 +36,7 @@ namespace WebApiDotnetCoreSample.Controllers
         /// <param name="pizza"></param>
         /// <returns></returns>
         [HttpPost]
-        public IActionResult AddPizza(Pizza pizza)
+        public IActionResult AddPizza([FromBody] Pizza pizza)
         {
             Task.Run( () =>
             {
@@ -52,12 +51,12 @@ namespace WebApiDotnetCoreSample.Controllers
         /// <param name="pizza"></param>
         /// <returns></returns>
         [HttpPut]
-        public IActionResult UpdatePizza(Pizza pizza)
+        public IActionResult UpdatePizza([FromBody] Pizza pizza)
         {
             if(pizza == null) return NotFound();
 
             var existingPizza = PizzaService.GetPizzaById(pizza.Id);
-            if(existingPizza == null) return NotFound(nameof(Pizza));
+            if(existingPizza == null) return NotFound($"Pizza not found with id : {pizza.Id}");
             PizzaService.UpdatePizza(pizza);
 
             return NoContent();           
@@ -72,9 +71,10 @@ namespace WebApiDotnetCoreSample.Controllers
         public IActionResult DeletePizza(int id)
         {
             var existingPizza = PizzaService.GetPizzaById(id);
-            if (existingPizza == null) return NotFound(nameof(Pizza));
+            if (existingPizza == null) return NotFound($"Pizza not found with id : {id}");
             PizzaService.DeletePizza(id);
-            return CreatedAtAction(nameof(UpdatePizza), id);
+
+            return NoContent();
         }
     }
 }
