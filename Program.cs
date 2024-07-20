@@ -1,5 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System;
+using WebApiDotnetCoreSample.Middlewares;
+using WebApiDotnetCoreSample.Providers;
+using WebApiDotnetCoreSample.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +17,27 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddCors();
+builder.Services.AddControllers();
+builder.Services.AddAuthentication(o =>
+{
+    o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    o.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+   .AddJwtBearer(x =>
+{
+    x.SaveToken = true;
+    x.RequireHttpsMetadata = false;
+    x.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("JWTAuthenticationHIGHsecuredPasswordVVVp1OH7Xzyr")),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+    };
+});
 
 var app = builder.Build();
 
@@ -23,9 +52,16 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 app.UseAuthorization();
+app.UseMiddleware<AuthMiddleware>();
+app.UseCors(x => x
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader());
 
 app.UseEndpoints(endpoints =>
 {
+    endpoints.MapControllers();
+
     endpoints.MapControllerRoute(
         name: "get",
         pattern: "{controller=Home}/{action=Index}/{id?}");

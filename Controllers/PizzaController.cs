@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Dynamic;
 using System.Runtime.InteropServices;
@@ -16,8 +17,8 @@ namespace WebApiDotnetCoreSample.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpGet]
-        
+        [Authorize]
+        [HttpGet]       
         public ActionResult<Pizza> GetPizzaById(int id)
         {
             var pizza = PizzaService.GetPizzaById(id);
@@ -35,6 +36,7 @@ namespace WebApiDotnetCoreSample.Controllers
         /// </summary>
         /// <param name="pizza"></param>
         /// <returns></returns>
+        [Authorize]
         [HttpPost]
         public IActionResult AddPizza([FromBody] Pizza pizza)
         {
@@ -50,6 +52,7 @@ namespace WebApiDotnetCoreSample.Controllers
         /// </summary>
         /// <param name="pizza"></param>
         /// <returns></returns>
+        [Authorize]
         [HttpPut]
         public IActionResult UpdatePizza([FromBody] Pizza pizza)
         {
@@ -67,6 +70,7 @@ namespace WebApiDotnetCoreSample.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
+        [Authorize]
         [HttpDelete]
         public IActionResult DeletePizza(int id)
         {
