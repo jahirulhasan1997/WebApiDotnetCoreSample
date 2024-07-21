@@ -4,13 +4,18 @@ using Microsoft.AspNetCore.Mvc;
 using System.Dynamic;
 using System.Runtime.InteropServices;
 using WebApiDotnetCoreSample.DataStoreModel;
+using WebApiDotnetCoreSample.Providers.CacheProvider;
 using WebApiDotnetCoreSample.Services;
 
 namespace WebApiDotnetCoreSample.Controllers
 {
     public class PizzaController : ControllerBase
     {
-       public PizzaController() { }
+       private readonly ICacheProvider cacheProvider;
+       public PizzaController(ICacheProvider provider)
+       {
+            this.cacheProvider = provider;
+       }
 
         /// <summary>
         /// Get Pizza By Id 
@@ -21,14 +26,15 @@ namespace WebApiDotnetCoreSample.Controllers
         [HttpGet]       
         public ActionResult<Pizza> GetPizzaById(int id)
         {
-            var pizza = PizzaService.GetPizzaById(id);
+            var pizza = this.cacheProvider.GetValue(id.ToString());
 
             if(pizza == null)
             {
-                return NotFound($"Pizza not found with id : {id}");
+                pizza = PizzaService.GetPizzaById(id);
+                this.cacheProvider.SetValue(id.ToString(), pizza);
             }
 
-            return pizza;
+            return pizza == null ? NotFound($"Pizza not found with Id : {id}") : (Pizza) pizza;
         }
 
         /// <summary>
@@ -42,7 +48,8 @@ namespace WebApiDotnetCoreSample.Controllers
         {
             Task.Run( () =>
             {
-                PizzaService.AddPizza(pizza);               
+                PizzaService.AddPizza(pizza);
+                this.cacheProvider.SetValue(pizza.Id.ToString(), pizza);
             });
 
             return CreatedAtAction(nameof(AddPizza) , pizza);
@@ -56,11 +63,12 @@ namespace WebApiDotnetCoreSample.Controllers
         [HttpPut]
         public IActionResult UpdatePizza([FromBody] Pizza pizza)
         {
-            if(pizza == null) return NotFound();
+            if(pizza == null) return BadRequest($"Missing input pizza payload");
 
             var existingPizza = PizzaService.GetPizzaById(pizza.Id);
             if(existingPizza == null) return NotFound($"Pizza not found with id : {pizza.Id}");
             PizzaService.UpdatePizza(pizza);
+            this.cacheProvider.SetValue(pizza.Id.ToString(), pizza);
 
             return NoContent();           
         }
@@ -77,7 +85,7 @@ namespace WebApiDotnetCoreSample.Controllers
             var existingPizza = PizzaService.GetPizzaById(id);
             if (existingPizza == null) return NotFound($"Pizza not found with id : {id}");
             PizzaService.DeletePizza(id);
-
+            this.cacheProvider.RemoveEntry(id.ToString());
             return NoContent();
         }
     }

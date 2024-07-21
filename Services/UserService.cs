@@ -1,6 +1,6 @@
 ﻿using WebApiDotnetCoreSample.DataStoreModel;
 using WebApiDotnetCoreSample.Helper;
-using WebApiDotnetCoreSample.Providers;
+using WebApiDotnetCoreSample.Providers.TokenProvider;
 
 
 namespace WebApiDotnetCoreSample.Services

@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using WebApiDotnetCoreSample.Providers;
+using WebApiDotnetCoreSample.Providers.TokenProvider;
 using WebApiDotnetCoreSample.Services;
 
 namespace WebApiDotnetCoreSample.Middlewares

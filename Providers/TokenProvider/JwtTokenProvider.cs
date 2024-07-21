@@ -4,9 +4,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
 
-namespace WebApiDotnetCoreSample.Providers
+namespace WebApiDotnetCoreSample.Providers.TokenProvider
 {
-    public class JwtTokenProvider 
+    public class JwtTokenProvider
     {
         public JwtTokenProvider() { }
 

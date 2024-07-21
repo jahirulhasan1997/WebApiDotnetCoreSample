@@ -7,7 +7,9 @@ using WebApiDotnetCoreSample.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.DependencyInjection;
 using System.Text;
+using WebApiDotnetCoreSample.Providers.CacheProvider;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +40,9 @@ builder.Services.AddAuthentication(o =>
         ValidateAudience = false,
     };
 });
+
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<ICacheProvider, CacheProvider>();
 
 var app = builder.Build();
 
