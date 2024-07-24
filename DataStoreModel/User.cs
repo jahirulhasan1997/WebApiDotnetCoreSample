@@ -1,7 +1,10 @@
-﻿namespace WebApiDotnetCoreSample.DataStoreModel
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace WebApiDotnetCoreSample.DataStoreModel
 {
     public class User
     {
+        [Key]
         public int Id { get; set; }
         public string? UserName { get; set; }
         public string? Email { get; set; }

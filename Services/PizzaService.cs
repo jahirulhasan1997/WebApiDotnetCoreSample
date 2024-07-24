@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using WebApiDotnetCoreSample.DataStoreModel;
 
 namespace WebApiDotnetCoreSample.Services
@@ -8,50 +11,44 @@ namespace WebApiDotnetCoreSample.Services
     {
         public PizzaService() { }
 
-        static List<Pizza> Pizzas {  get; }
+        private readonly PizzaDbContext _context;
 
-        static PizzaService()
+        public PizzaService(PizzaDbContext context)
         {
-            Pizzas = new List<Pizza>()
-            {
-                new Pizza { Id = 1, Name = "Non Veg Pizza", Description = "Chicken pizza"},
-                new Pizza { Id = 2, Name = "Non Veg Pizza", Description = "Chicken pizza"}
-            };
+            this._context = context;  
         }
-
-        static int PizzaId = 3;
 
         /// <summary>
         /// Get Pizza By Id
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static Pizza GetPizzaById(int id)
+        public Pizza GetPizzaById(int id)
         {
-            return Pizzas.FirstOrDefault( p => p.Id == id);
+            return this._context.Pizza.Find(id);
         }
 
         /// <summary>
         /// Add Pizza
         /// </summary>
         /// <param name="pizza"></param>
-        public static Task AddPizza (Pizza pizza)
+        public void AddPizza (Pizza pizza)
         {
-            pizza.Id = PizzaId++;
-            Pizzas?.Add(pizza);
-            return Task.FromResult(pizza);
+            this._context.Pizza.Add(pizza);
+            SaveChanges("Pizza");
         }
 
         /// <summary>
         /// Delete Pizza 
         /// </summary>
         /// <param name="id"></param>
-        public static void DeletePizza(int id)
+        public void DeletePizza(int id)
         {
             Pizza pizza = GetPizzaById(id);
             if (pizza != null)
             {
-                Pizzas?.Remove(pizza);
+                this._context.Pizza.Remove(pizza);
+                SaveChanges("Pizza");
             }
         }
 
@@ -59,31 +56,18 @@ namespace WebApiDotnetCoreSample.Services
         /// Update Pizza 
         /// </summary>
         /// <param name="updatedPizza"></param>
-        public static void UpdatePizza(Pizza updatedPizza)
+        public void UpdatePizza(Pizza updatedPizza)
         {
-            int index = Pizzas.FindIndex(p => p.Id == updatedPizza.Id);
-            if (index == -1)
-            {
-                return;
-            }
-            Pizzas[index] = updatedPizza;
+            this._context.ChangeTracker.Context.Update(updatedPizza);
+            SaveChanges("Pizza");
         }
 
-        /// <summary>
-        /// Patch pizza by Id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="name"></param>
-        /// <param name="description"></param>
-        public static void PatchPizzaById(int id , string? name = null, string? description = null)
+        private void SaveChanges(string database)
         {
-            int index = Pizzas.IndexOf(GetPizzaById(id));
-            Pizza pizza = Pizzas[index];
-            
-            if(name != null) pizza.Name = name;
-            if(description != null) pizza.Description = description;
-
-            Pizzas.Insert(index, pizza);
+            this._context.Database.OpenConnection();
+            this._context.Database.ExecuteSqlRaw($"SET IDENTITY_INSERT {database} ON");
+            this._context.SaveChanges();
+            this._context.Database.ExecuteSqlRaw($"SET IDENTITY_INSERT {database} OFF");
         }
     }
 }

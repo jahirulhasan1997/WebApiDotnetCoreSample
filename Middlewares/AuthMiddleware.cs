@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using WebApiDotnetCoreSample.DataStoreModel;
 using WebApiDotnetCoreSample.Providers.TokenProvider;
 using WebApiDotnetCoreSample.Services;
 
@@ -8,10 +9,10 @@ namespace WebApiDotnetCoreSample.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly UserService _userService;
-        public AuthMiddleware(RequestDelegate next) 
+        public AuthMiddleware(RequestDelegate next, UserDbContext userDbContext) 
         { 
             _next = next;
-            _userService = new UserService();
+            _userService = new UserService(userDbContext);
         }
 
         public async Task Invoke(HttpContext context)

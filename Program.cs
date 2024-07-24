@@ -10,10 +10,31 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text;
 using WebApiDotnetCoreSample.Providers.CacheProvider;
+using WebApiDotnetCoreSample.DataStoreModel;
+using Microsoft.EntityFrameworkCore.SqlServer;
+using Microsoft.EntityFrameworkCore;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+//builder.WebHost.ConfigureServices(services =>
+//{
+//    services.AddDbContext<UserDbContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("con")));
+//    services.AddDbContext<UserDbContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("con")));
+//});
 
 // Add services to the container.
+
+builder.Services.AddDbContext<UserDbContext>(x =>
+{
+    x.UseSqlServer(builder.Configuration.GetConnectionString("con"));
+    x.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+}, ServiceLifetime.Singleton);
+
+builder.Services.AddDbContext<PizzaDbContext>(x =>
+{
+    x.UseSqlServer(builder.Configuration.GetConnectionString("con"));
+    x.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+}, ServiceLifetime.Singleton);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

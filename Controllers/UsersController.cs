@@ -12,9 +12,9 @@ namespace WebApiDotnetCoreSample.Controllers
     public class UsersController : ControllerBase
     {
         private readonly UserService userService;
-        public UsersController() 
+        public UsersController(UserDbContext userDbContext) 
         {
-            if(userService == null) userService = new UserService();
+            if(userService == null) userService = new UserService(userDbContext);
         }
 
         /// <summary>
@@ -59,7 +59,14 @@ namespace WebApiDotnetCoreSample.Controllers
                 return BadRequest("User Invalid");
             };
 
-            this.userService.AddUser(user);
+            try
+            {
+                this.userService.AddUser(user);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
 
             return Ok();
         }

@@ -12,9 +12,11 @@ namespace WebApiDotnetCoreSample.Controllers
     public class PizzaController : ControllerBase
     {
        private readonly ICacheProvider cacheProvider;
-       public PizzaController(ICacheProvider provider)
+        private readonly PizzaService pizzaService;
+       public PizzaController(ICacheProvider provider, PizzaDbContext pizzaDbContext)
        {
             this.cacheProvider = provider;
+            pizzaService = new PizzaService(pizzaDbContext);
        }
 
         /// <summary>
@@ -27,11 +29,20 @@ namespace WebApiDotnetCoreSample.Controllers
         public ActionResult<Pizza> GetPizzaById(int id)
         {
             var pizza = this.cacheProvider.GetValue(id.ToString());
-
-            if(pizza == null)
+            try
             {
-                pizza = PizzaService.GetPizzaById(id);
-                this.cacheProvider.SetValue(id.ToString(), pizza);
+                if (pizza == null)
+                {
+                    pizza = this.pizzaService.GetPizzaById(id);
+                    if (pizza != null)
+                    {
+                        this.cacheProvider.SetValue(id.ToString(), pizza);
+                    }
+                }
+            }
+            catch (Exception ex) 
+            {
+                throw ex;
             }
 
             return pizza == null ? NotFound($"Pizza not found with Id : {id}") : (Pizza) pizza;
@@ -46,11 +57,20 @@ namespace WebApiDotnetCoreSample.Controllers
         [HttpPost]
         public IActionResult AddPizza([FromBody] Pizza pizza)
         {
-            Task.Run( () =>
+            try
             {
-                PizzaService.AddPizza(pizza);
-                this.cacheProvider.SetValue(pizza.Id.ToString(), pizza);
-            });
+                Task.Run(() =>
+                {
+                    pizzaService.AddPizza(pizza);
+                    this.cacheProvider.SetValue(pizza.PizzaId.ToString(), pizza);
+                });
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            Task.Delay(1000);
 
             return CreatedAtAction(nameof(AddPizza) , pizza);
         }
@@ -65,10 +85,17 @@ namespace WebApiDotnetCoreSample.Controllers
         {
             if(pizza == null) return BadRequest($"Missing input pizza payload");
 
-            var existingPizza = PizzaService.GetPizzaById(pizza.Id);
-            if(existingPizza == null) return NotFound($"Pizza not found with id : {pizza.Id}");
-            PizzaService.UpdatePizza(pizza);
-            this.cacheProvider.SetValue(pizza.Id.ToString(), pizza);
+            try
+            {
+                var existingPizza = pizzaService.GetPizzaById(pizza.PizzaId);
+                if (existingPizza == null) return NotFound($"Pizza not found with id : {pizza.PizzaId}");
+                pizzaService.UpdatePizza(pizza);
+                this.cacheProvider.SetValue(pizza.PizzaId.ToString(), pizza);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
 
             return NoContent();           
         }
@@ -82,10 +109,17 @@ namespace WebApiDotnetCoreSample.Controllers
         [HttpDelete]
         public IActionResult DeletePizza(int id)
         {
-            var existingPizza = PizzaService.GetPizzaById(id);
-            if (existingPizza == null) return NotFound($"Pizza not found with id : {id}");
-            PizzaService.DeletePizza(id);
-            this.cacheProvider.RemoveEntry(id.ToString());
+            try
+            {
+                var existingPizza = pizzaService.GetPizzaById(id);
+                if (existingPizza == null) return NotFound($"Pizza not found with id : {id}");
+                pizzaService.DeletePizza(id);
+                this.cacheProvider.RemoveEntry(id.ToString());
+            }
+            catch (Exception ex) 
+            {
+                throw ex;
+            }
             return NoContent();
         }
     }
